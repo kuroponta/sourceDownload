@@ -42,7 +42,7 @@ public class SourceDownload {
 		//指定サイトによって取得先を変更
 		if (val == 1){
 			//github用に削除
-			domain = "https://www.mydocomo.com";
+			domain = "";
 			siteName = "商用サイト";
 		} else if (val == 2) {
 			domain = "";
