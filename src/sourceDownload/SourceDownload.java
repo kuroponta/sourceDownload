@@ -40,7 +40,7 @@ public class SourceDownload {
 		//指定サイトによって取得先を変更
 		if (val == 1){
 			//github用に削除
-			domain = "";
+			domain = "https://www.mydocomo.com";
 			siteName = "商用サイト";
 		} else if (val == 2) {
 			domain = "";
@@ -63,19 +63,30 @@ public class SourceDownload {
 		if (dirMap.size() != 0) {
 			List<String> updateList = getUpdateList(dirName,dirMap,downloadList);
 			//リストからファイル作成
-			getUpdateFile(updateList);
+			getUpdateFile(dirName,updateList);
 		}
 	}
 
 	/**
 	 * 更新されているファイル一覧を取得します.
+	 * @param dirName 
 	 * @param updateList
+	 * @throws IOException 
 	 */
-	private static void getUpdateFile(List<String> updateList) {
+	private static void getUpdateFile(String dirName, List<String> updateList) throws IOException {
 		if (updateList.size() == 0) {
 			System.out.println("\n更新はありません.");
 		} else {
 			System.out.println("\n更新したファイル一覧を取得します.");
+			// 更新ファイル一覧が存在するかのチェック
+			if (!Files.exists(Paths.get(dirName, "updateFileList.txt"))) {
+				//ファイルが存在しない場合ファイルを作成
+				Files.createFile(Paths.get(dirName, "updateFileList.txt"));
+				/*
+				System.out.println("\n取得中...");
+				System.out.println("\n取得が完了しました.");
+				*/
+			}
 		}
 	}
 
@@ -88,11 +99,11 @@ public class SourceDownload {
 	 */
 	private static List<String> getUpdateList(String dirName, Map<String, String> dirMap, List<String> downloadList) {
 		List<String> updateList = new ArrayList<String>();
-
 		for (String url : downloadList) {
+			String updateDate = DATE_FORMAT.format(Paths.get(dirName + url).toFile().lastModified());
 			//更新前の日時と比較し、異なる場合はファイルのurlを詰める
-			if (!dirMap.get(url).equals(DATE_FORMAT.format(Paths.get(dirName + url).toFile().lastModified()))){
-				updateList.add(url);
+			if (!dirMap.get(url).equals(updateDate)){
+				updateList.add(url + " ： " + updateDate);
 			}
 		}
 
