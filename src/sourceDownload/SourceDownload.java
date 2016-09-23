@@ -15,8 +15,7 @@ import java.util.Scanner;
 
 public class SourceDownload {
 	
-	//github用に削除
-	final static String FILE_PASS = "";
+	final static String FILE_PATH = "C:\\sourceDownload\\urlList.txt";
 	//更新日時表示書式
 	final static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	
@@ -43,7 +42,7 @@ public class SourceDownload {
 		//指定サイトによって取得先を変更
 		if (val == 1){
 			//github用に削除
-			domain = "";
+			domain = "https://www.mydocomo.com";
 			siteName = "商用サイト";
 		} else if (val == 2) {
 			domain = "";
@@ -70,6 +69,10 @@ public class SourceDownload {
 		}
 	}
 
+	/**
+	 * 更新されているファイル一覧を取得します.
+	 * @param updateList
+	 */
 	private static void getUpdateFile(List<String> updateList) {
 		if (updateList.size() == 0) {
 			System.out.println("\n更新はありません.");
@@ -153,7 +156,7 @@ public class SourceDownload {
 		//URL一覧格納用
 		List<String> urlList = new ArrayList<String>();
 		try{
-			File file = new File(FILE_PASS);
+			File file = new File(FILE_PATH);
 			BufferedReader br = new BufferedReader(new FileReader(file));
 			String str;
 			while((str = br.readLine()) != null){
@@ -179,10 +182,10 @@ public class SourceDownload {
 	static List<java.lang.String> getCommandList(List<String> downloadList,String domain, String dirName) {
 		List<String> commandList = new ArrayList<String>();
 		for (String url : downloadList) {
-			String dirPass = getDirectoryPass(url);;
+			String dirPath = getDirectoryPath(url);
 
 			String command = "wget -N --no-check-certificate ";
-			command += domain + url + " -P " + dirName + dirPass;
+			command += domain + url + " -P " + dirName + dirPath;
 			commandList.add(command);
 		}
 		return commandList;
@@ -191,19 +194,19 @@ public class SourceDownload {
 	/**
 	 * ダウンロードするファイルのディレクトリ位置を設定します.
 	 * @param url
-	 * @return dirPass
+	 * @return dirPath
 	 */
 	
-	static String getDirectoryPass(String url) {
+	static String getDirectoryPath(String url) {
 		//ディレクトリパス格納
-		String dirPass = "/";
+		String dirpath = "/";
 		String[] dirStr = url.split("/");
 		for (int i=0; i<dirStr.length-1; i++) {
 			if (!dirStr[i].equals("")){
-				dirPass += dirStr[i] + "/";
+				dirpath += dirStr[i] + "/";
 			}
 		}
-		return dirPass;
+		return dirpath;
 	}
 
 	/**
