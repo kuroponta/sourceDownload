@@ -1,11 +1,9 @@
 package sourceDownload;
 
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -90,15 +88,14 @@ public class SourceDownload {
 	 */
 	private static List<String> getUpdateList(String dirName, Map<String, String> dirMap, List<String> downloadList) {
 		List<String> updateList = new ArrayList<String>();
+
 		for (String url : downloadList) {
-			//更新ファイルの判定をします
-			String localDir = dirName + url;
-			File dirFile = new File(localDir);
 			//更新前の日時と比較し、異なる場合はファイルのurlを詰める
-			if (!dirMap.get(url).equals(DATE_FORMAT.format(dirFile.lastModified()))){
+			if (!dirMap.get(url).equals(DATE_FORMAT.format(Paths.get(dirName + url).toFile().lastModified()))){
 				updateList.add(url);
 			}
 		}
+
 		return updateList;
 	}
 
@@ -130,45 +127,34 @@ public class SourceDownload {
 	 */
 	static Map<String, String> checkDir(String dirName, List<String> downloadList) {
 		String localDir = dirName + "/onlineshop";
-		File file = new File(localDir);
-		Map<String, String> dirUpdateMap = new HashMap<String,String>();
-		//既にファイルがあるかどうか
-		if (file.exists()) {
-			//ある場合は更新日時一覧をMapに詰め込み
-			for (String url : downloadList){
-				localDir = dirName + url;
-				File dlUrl = new File(localDir);
-				dirUpdateMap.put(url, DATE_FORMAT.format(dlUrl.lastModified()));
-			}
-		} else {
-			//ない場合は新規作成（Mapはカラ）
+		Map<String, String> updateDirMap = new HashMap<String,String>();
+
+		if (!Files.isDirectory(Paths.get(localDir))) {
+			//ディレクトリがない場合は新規作成（Mapはカラ）
 			System.out.println("\nソースが存在しないため、新規作成します.");
+		} else {
+			//ディレクトリがある場合は更新日時一覧をMapに詰め込み
+			downloadList.stream()
+						.forEach(url -> updateDirMap.put(url,DATE_FORMAT.format(Paths.get(dirName + url).toFile().lastModified())));
 		}
-		return dirUpdateMap;
+
+		return updateDirMap;
 	}
 
 	/**
 	 * urlList.txtファイルの中身を取得します.
 	 * @return downloadList
+	 * @throws IOException 
 	 */
-	@SuppressWarnings("resource")
-	static List<String> getFileContents() {
-		//URL一覧格納用
+	static List<String> getFileContents() throws IOException {
 		List<String> urlList = new ArrayList<String>();
-		try{
-			File file = new File(FILE_PATH);
-			BufferedReader br = new BufferedReader(new FileReader(file));
-			String str;
-			while((str = br.readLine()) != null){
-				urlList.add(str.replace("\\", "/"));
-			}
-		}catch(FileNotFoundException e){
-			System.out.println(e);
-		}catch(IOException e){
-			System.out.println(e);
-		}
-		//ダウンロードURL取得
-		List<String> downloadList = getDownloadList(urlList);
+		List<String> downloadList = new ArrayList<String>();
+		//ファイル読み込み
+		List<String> fileContentStr = Files.readAllLines(Paths.get(FILE_PATH));
+		//"\"を"/"に置換
+		fileContentStr.stream().forEach(st -> urlList.add(st.replace("\\", "/")));
+		downloadList = getDownloadList(urlList);
+
 		return downloadList;
 	}
 
@@ -181,6 +167,7 @@ public class SourceDownload {
 	 */
 	static List<java.lang.String> getCommandList(List<String> downloadList,String domain, String dirName) {
 		List<String> commandList = new ArrayList<String>();
+		
 		for (String url : downloadList) {
 			String dirPath = getDirectoryPath(url);
 
@@ -199,14 +186,14 @@ public class SourceDownload {
 	
 	static String getDirectoryPath(String url) {
 		//ディレクトリパス格納
-		String dirpath = "/";
+		String dirPath = "/";
 		String[] dirStr = url.split("/");
 		for (int i=0; i<dirStr.length-1; i++) {
 			if (!dirStr[i].equals("")){
-				dirpath += dirStr[i] + "/";
+				dirPath += dirStr[i] + "/";
 			}
 		}
-		return dirpath;
+		return dirPath;
 	}
 
 	/**
@@ -219,11 +206,9 @@ public class SourceDownload {
 		List<String> downloadList = new ArrayList<String>();
 		
 		for (String urlStr : urlList) {
-			String extensionStr = "";
-			String[] spritArrayStr = urlStr.split("\\.");
-			
-			//拡張子格納用
-			extensionStr = spritArrayStr[spritArrayStr.length - 1];
+			int idx = urlStr.lastIndexOf(".");
+
+			String extensionStr = urlStr.substring(idx + 1);
 			//拡張子判別
 			if(extensionStr.equals("html") || extensionStr.equals("css") || extensionStr.equals("js") || extensionStr.equals("xml")){
 				downloadList.add(urlStr);
