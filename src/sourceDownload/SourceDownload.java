@@ -58,13 +58,14 @@ public class SourceDownload {
 		List<String> commandList = getCommandList(downloadList,domain,dirName);
 		//ダウンロード処理実行
 		download(downloadList,commandList);
-		System.out.println("\nファイルの更新日時から更新の有無を確認します.");
 		//更新された項目のListを作成
 		if (dirMap.size() != 0) {
+			System.out.println("\nファイルの更新日時から更新の有無を確認します.");
 			List<String> updateList = getUpdateList(dirName,dirMap,downloadList);
 			//リストからファイル作成
 			getUpdateFile(dirName,updateList);
 		}
+		System.out.println("\nダウンロードを終了します.");
 	}
 
 	/**
@@ -78,6 +79,8 @@ public class SourceDownload {
 			System.out.println("\n更新はありません.");
 		} else {
 			System.out.println("\n更新したファイル一覧を取得します.");
+			
+			updateList.stream().forEach(u -> System.out.println(u));
 			// 更新ファイル一覧が存在するかのチェック
 			if (!Files.exists(Paths.get(dirName, "updateFileList.txt"))) {
 				//ファイルが存在しない場合ファイルを作成
@@ -101,9 +104,14 @@ public class SourceDownload {
 		List<String> updateList = new ArrayList<String>();
 		for (String url : downloadList) {
 			String updateDate = DATE_FORMAT.format(Paths.get(dirName + url).toFile().lastModified());
-			//更新前の日時と比較し、異なる場合はファイルのurlを詰める
-			if (!dirMap.get(url).equals(updateDate)){
-				updateList.add(url + " ： " + updateDate);
+			//新規ファイルの場合
+			if(!dirMap.containsKey(url)){
+				updateList.add("新規 ： " + url + " ： " + updateDate);
+			} else {
+				//更新前の日時と比較し、異なる場合はファイルのurlを詰める
+				if (!dirMap.get(url).equals(updateDate)){
+					updateList.add("更新 ： " + url + " ： " + updateDate);
+				}
 			}
 		}
 
