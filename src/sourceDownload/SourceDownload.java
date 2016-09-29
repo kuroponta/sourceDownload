@@ -1,6 +1,8 @@
 package sourceDownload;
 
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -80,16 +82,20 @@ public class SourceDownload {
 		} else {
 			System.out.println("\n更新したファイル一覧を取得します.");
 			
-			updateList.stream().forEach(u -> System.out.println(u));
 			// 更新ファイル一覧が存在するかのチェック
 			if (!Files.exists(Paths.get(dirName, "updateFileList.txt"))) {
 				//ファイルが存在しない場合ファイルを作成
 				Files.createFile(Paths.get(dirName, "updateFileList.txt"));
-				/*
-				System.out.println("\n取得中...");
-				System.out.println("\n取得が完了しました.");
-				*/
 			}
+			File f = new File(dirName + "updateFileList.txt");
+			
+			FileWriter filewriter = new FileWriter(f);
+			
+			for (String updateFile : updateList){
+				filewriter.write(updateFile);
+			}
+
+			filewriter.close();
 		}
 	}
 
